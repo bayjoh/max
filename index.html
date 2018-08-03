@@ -111,7 +111,10 @@ function classifier(input) {
   var len= input.length;
   var result = {};
   result["noOfGroups"] = 0;
-  for (var i = 0; i < len ; i++)
+
+  if(typeof input == "object")
+  {
+      for (var i = 0; i < len ; i++)
   {
     var birthDate = new Date(input[i].dob);
     var birthYear = birthDate.getUTCFullYear();
@@ -124,69 +127,103 @@ function classifier(input) {
     var age = currentYear - birthYear;
     if (currentMonth < birthMonth|| currentMonth == birthMonth && currentDay < birthDay)
     { 
-    	input[i]["age"] = age--;
+      input[i]["age"] = age--;
     }
     else
     {
-    	input[i]["age"]=age;
+      input[i]["age"]=age;
     }
   }
 
      input.sort(function(a, b) { return a.age - b.age; });
+
+     var min,max,
+         num = 1;
+         groupName = "group"+num;
+
+     min = input[0].age;
      for (var i = 0; i < len ; i++)
     { 
-  	   console.log(input[i]);
-  	}
+        
 
-     var num = 1;
-     var groupName;
-     var i =0;
-     var res= 0;
-     
-  	 while( i < len)
-     {  
-          var groupName = "group"+num;
+        if(!result.hasOwnProperty(groupName))
+        {
           result[groupName] = {};
-           result[groupName]["members"]= [];
-           result[groupName]["members"].push(input[i]);
-           result[groupName]["regNos"] = [];
-           result[groupName]["regNos"].push(input[i].regNo); 
-           result[groupName]["oldest"] = input[i].age ;
-           result[groupName]["sum"]= input[i].age;         
-           if(result[groupName]["members"].length < 3)
-           {
-  
-
-                 res= result[groupName].oldest - input[i].age; 
-
-              while(res <= 5)
-              {
-                 result[groupName]["members"].push(input[i+1]);
-                 result[groupName]["oldest"] = Math.max(result[groupName].oldest, input[i+1].age );
-                 result[groupName]["sum"]= input[i+1].age + result[groupName].sum ;
-                 result[groupName]["regNos"].push(input[i+1].regNo);
-                 result[groupName]["regNos"].sort();
-                 i= i +1;; 
-                 res= res + (input[i+1].age - input[i].age); 
-
-             
-           }
-
-         }
-          else
-          {
-            res = 0;
-          }
+          result[groupName]["members"] = [];          
+        }
 
 
-        i++;
-  	    result["noOfGroups"] = num;
-  	    num++;
-  	 }
+          max = input[i].age;
+
+
+         if((max - min) <= 5 && result[groupName]["members"].length <3)
+         {
+
+                  if(result[groupName]["members"].length == 0)
+                  {
+                     min = max;
+                     result[groupName]["members"].push(input[i]);
+                     result[groupName]["oldest"] = max;
+                     result[groupName]["sum"]= max;
+                       if(!result[groupName].hasOwnProperty("regNos"))
+                       {
+                          result[groupName]["regNos"] = [];                  
+                       }
+                     result[groupName]["regNos"].push(parseInt(input[i].regNo));
+                     result[groupName]["regNos"].sort();
+                  }
+
+                  else 
+                  {  
+                     min = result[groupName]["members"][0].age;           
+                     result[groupName]["members"].push(input[i]);
+                     result[groupName]["oldest"] = max;
+                     result[groupName]["sum"]= result[groupName].sum + max;
+                       if(!result[groupName].hasOwnProperty("regNos"))
+                       {
+                          result[groupName]["regNos"] = [];                  
+                       }
+                     result[groupName]["regNos"].push(parseInt(input[i].regNo));
+                     result[groupName]["regNos"].sort();
+                  } 
+               }
+
+       
+       else
+       { 
+
+             num++;
+             groupName = "group"+num;
+             result[groupName] = {};
+             result[groupName]["members"]= []; 
+             min =input[i].age;
+             max =input[i].age;
+             result[groupName]["members"].push(input[i]);
+             result[groupName]["oldest"] = max;
+             result[groupName]["sum"]= max;
+                 if(!result[groupName].hasOwnProperty("regNos"))
+                 {
+                    result[groupName]["regNos"] = [];                  
+                 }
+             result[groupName]["regNos"].push(parseInt(input[i].regNo));
+             result[groupName]["regNos"].sort();
+       }
+       
+       result["noOfGroups"] = num;
+
+   }
+
+
+    console.log(result);
+  }
+
+  else
+  {
+     throw new Error("Invalid Type");
+  }
 
 
 
-  	console.log(result);
 }
 classifier(t);
 //module.exports = classifier;
